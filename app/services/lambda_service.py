@@ -35,6 +35,8 @@ async def call_rag_lambda(query: str, timeout: float = 60.0) -> Dict[str, Any]:
             f"upstream returned HTTP {exc.response.status_code}: {exc.response.text[:200]}"
         ) from exc
     except httpx.RequestError as exc:
-        raise LambdaServiceError(f"request failed: {exc}") from exc
+        kind = type(exc).__name__
+        detail = str(exc) or repr(exc)
+        raise LambdaServiceError(f"request failed ({kind}): {detail}") from exc
     except ValueError as exc:
         raise LambdaServiceError(f"invalid JSON response: {exc}") from exc

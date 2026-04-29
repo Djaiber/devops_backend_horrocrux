@@ -10,18 +10,12 @@ name = "HORROCRUXES Backend"
 paths = ["/"]
 
 [services.development]
-run = "cd /home/runner/workspace && uvicorn app.main:app --host 0.0.0.0 --port 8080"
-
-[services.development.env]
-PYTHONUNBUFFERED = "1"
+run = "bash -lc 'cd /home/runner/workspace && exec uvicorn app.main:app --host 0.0.0.0 --port 8080'"
 
 [services.production]
 
 [services.production.run]
-args = ["sh", "-c", "cd /home/runner/workspace && uvicorn app.main:app --host 0.0.0.0 --port 8080"]
-
-[services.production.run.env]
-PYTHONUNBUFFERED = "1"
+args = ["bash", "-lc", "cd /home/runner/workspace && exec uvicorn app.main:app --host 0.0.0.0 --port 8080"]
 
 [services.production.health.startup]
 path = "/health"
