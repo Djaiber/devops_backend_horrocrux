@@ -25,3 +25,15 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## HORROCRUXES Backend Preview (Python / FastAPI)
+
+A standalone Python FastAPI service at the repo root acts as a proxy/facade for an
+external Lambda RAG API. It is independent from the pnpm workspace artifacts.
+
+- **Stack**: Python 3.12, FastAPI, Uvicorn, httpx, pydantic-settings, python-dotenv
+- **Run command**: `uvicorn app.main:app --host 0.0.0.0 --port 8080`
+- **Workflow**: `HORROCRUXES Backend`
+- **Endpoints**: `GET /health`, `POST /api/demo/query`, interactive docs at `/docs`
+- **Required env**: `LAMBDA_URL`, `LAMBDA_API_KEY`, `CORS_ORIGINS` (see `.env.example`)
+- **Layout**: `app/main.py`, `app/core/config.py`, `app/services/lambda_service.py`, `requirements.txt`
