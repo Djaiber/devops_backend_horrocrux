@@ -1,3 +1,4 @@
+import logging
 import time
 import uuid
 from typing import Any, Dict, List
@@ -8,6 +9,13 @@ from pydantic import BaseModel, Field
 
 from app.core.config import settings
 from app.services.lambda_service import LambdaServiceError, call_rag_lambda
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s - %(message)s",
+)
+logging.getLogger("app").setLevel(logging.INFO)
 
 
 app = FastAPI(
