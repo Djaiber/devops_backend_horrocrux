@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     LAMBDA_URL: str = ""
     LAMBDA_API_KEY: str = ""
     CORS_ORIGINS: str = ""
+    DATABASE_URL: str = ""
+    DEFAULT_USER_ID: str = "default-user"
+    HISTORY_LIMIT: int = 10
 
     @property
     def cors_origins_list(self) -> List[str]:

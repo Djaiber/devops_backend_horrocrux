@@ -3,8 +3,6 @@ uvicorn[standard]
 httpx
 pydantic-settings
 python-dotenv
-fastapi
-httpx
-pydantic-settings
-python-dotenv
-uvicorn[standard]
+sqlalchemy[asyncio]
+asyncpg
+greenlet

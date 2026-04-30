@@ -1,6 +1,7 @@
 import logging
 import time
 import uuid
+from contextlib import asynccontextmanager
 from typing import Any, Dict, List
 
 from fastapi import FastAPI, HTTPException
@@ -8,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
+from app.core.db.session import init_db
+from app.routers.chat import router as chat_router
 from app.services.lambda_service import LambdaServiceError, call_rag_lambda
 
 
@@ -17,11 +20,22 @@ logging.basicConfig(
 )
 logging.getLogger("app").setLevel(logging.INFO)
 
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    logger.info("initializing database schema")
+    await init_db()
+    logger.info("database ready")
+    yield
+
 
 app = FastAPI(
-    title="HORROCRUXES Backend Preview",
-    description="API proxy/facade for the external Lambda RAG API.",
-    version="0.1.0",
+    title="HORROCRUXES Backend",
+    description="Chat backend with persistent storage that proxies a RAG Lambda.",
+    version="0.2.0",
+    lifespan=lifespan,
 )
 
 cors_origins = settings.cors_origins_list or ["*"]
@@ -32,6 +46,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(chat_router)
 
 
 class QueryRequest(BaseModel):
