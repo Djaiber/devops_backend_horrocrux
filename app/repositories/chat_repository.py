@@ -6,13 +6,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db.models import Chat, User
 
 
-async def ensure_user(session: AsyncSession, user_id: str) -> User:
-    """Get a user by id, creating it if it doesn't exist."""
-    user = await session.get(User, user_id)
+async def ensure_user(
+    session: AsyncSession,
+    cognito_sub: str,
+    email: Optional[str] = None,
+    username: Optional[str] = None,
+) -> User:
+    stmt = select(User).where(User.cognito_sub == cognito_sub)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
     if user is None:
-        user = User(id=user_id)
+        user = User(cognito_sub=cognito_sub, email=email, username=username)
         session.add(user)
         await session.flush()
+    else:
+        if email and user.email != email:
+            user.email = email
+        if username and user.username != username:
+            user.username = username
     return user
 
 
@@ -20,20 +31,14 @@ async def get_chat(session: AsyncSession, chat_id: int) -> Optional[Chat]:
     return await session.get(Chat, chat_id)
 
 
-async def create_chat(session: AsyncSession, user_id: str, character: Optional[str] = None) -> Chat:
+async def create_chat(session: AsyncSession, user_id: int, character: Optional[str] = None) -> Chat:
     chat = Chat(user_id=user_id, character=character or "dumbledore")
     session.add(chat)
     await session.flush()
     return chat
 
 
-async def get_or_create_chat(
-    session: AsyncSession,
-    user_id: str,
-    chat_id: Optional[int],
-    character: Optional[str] = None,
-) -> Chat:
-    """If chat_id is provided and exists for this user, return it. Otherwise create a new chat."""
+async def get_or_create_chat(session: AsyncSession, user_id: int, chat_id: Optional[int], character: Optional[str] = None) -> Chat:
     if chat_id is not None:
         existing = await session.get(Chat, chat_id)
         if existing is not None and existing.user_id == user_id:

@@ -103,8 +103,11 @@ async def handle_message(
     )
 
     await session.commit()
-    await session.refresh(user_message)
-    await session.refresh(assistant_message)
+    for msg in (user_message, assistant_message):
+        try:
+            await session.refresh(msg)
+        except Exception:
+            pass
 
     return ChatTurnResult(
         chat_id=chat.id,
