@@ -33,6 +33,8 @@ class Chat(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
+    character: Mapped[str] = mapped_column(String(32), nullable=False, server_default="dumbledore")
+
     user: Mapped["User"] = relationship(back_populates="chats")
     messages: Mapped[List["Message"]] = relationship(
         back_populates="chat", cascade="all, delete-orphan"
@@ -54,3 +56,12 @@ class Message(Base):
     )
 
     chat: Mapped["Chat"] = relationship(back_populates="messages")
+
+
+class Character(Base):
+    __tablename__ = "characters"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    label: Mapped[str] = mapped_column(String(64), nullable=False)
+    description: Mapped[str] = mapped_column(String(256), nullable=False)
+    icon: Mapped[str] = mapped_column(Text, nullable=False)

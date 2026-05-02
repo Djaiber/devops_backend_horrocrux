@@ -20,8 +20,8 @@ async def get_chat(session: AsyncSession, chat_id: int) -> Optional[Chat]:
     return await session.get(Chat, chat_id)
 
 
-async def create_chat(session: AsyncSession, user_id: str) -> Chat:
-    chat = Chat(user_id=user_id)
+async def create_chat(session: AsyncSession, user_id: str, character: Optional[str] = None) -> Chat:
+    chat = Chat(user_id=user_id, character=character or "dumbledore")
     session.add(chat)
     await session.flush()
     return chat
@@ -31,10 +31,11 @@ async def get_or_create_chat(
     session: AsyncSession,
     user_id: str,
     chat_id: Optional[int],
+    character: Optional[str] = None,
 ) -> Chat:
     """If chat_id is provided and exists for this user, return it. Otherwise create a new chat."""
     if chat_id is not None:
         existing = await session.get(Chat, chat_id)
         if existing is not None and existing.user_id == user_id:
             return existing
-    return await create_chat(session, user_id)
+    return await create_chat(session, user_id, character=character)

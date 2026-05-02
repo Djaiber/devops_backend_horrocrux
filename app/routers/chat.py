@@ -30,6 +30,7 @@ async def post_message(
             content=content,
             chat_id=payload.chat_id,
             user_id=payload.user_id,
+            character=payload.character,
         )
     except LambdaServiceError as exc:
         raise HTTPException(
