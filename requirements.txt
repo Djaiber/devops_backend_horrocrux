@@ -6,3 +6,6 @@ python-dotenv
 sqlalchemy[asyncio]
 asyncpg
 greenlet
+langchain
+langchain-google-genai<2
+google-genai

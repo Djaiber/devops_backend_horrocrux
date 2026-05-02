@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = ""
     DEFAULT_USER_ID: str = "default-user"
     HISTORY_LIMIT: int = 10
+    GOOGLE_API_KEY: str = ""
 
     @property
     def cors_origins_list(self) -> List[str]:

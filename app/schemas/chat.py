@@ -14,6 +14,7 @@ class MessageIn(BaseModel):
         default=None,
         description="User id. Defaults to the configured DEFAULT_USER_ID when omitted.",
     )
+    character: Optional[str] = None
 
 
 class MessageOut(BaseModel):

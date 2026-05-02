@@ -29,9 +29,10 @@ async def _generate_assistant_reply(
     query: str,
     history: List[router_agent.HistoryMessage],
     trace_id: str,
+    character: Optional[str] = None,
 ) -> str:
     """Route the query through the agent and produce the assistant's reply text."""
-    decision = router_agent.decide_route(query, history)
+    decision = router_agent.decide_route(query, history, character=character)
     logger.info(
         "router_agent decision trace_id=%s route=%s reason=%s history_len=%d",
         trace_id, decision.route, decision.reason, len(history),
@@ -41,15 +42,18 @@ async def _generate_assistant_reply(
         return decision.answer
 
     if decision.route == "rag":
+        rag_query = await router_agent.rewrite_query_for_rag(query, character)
         try:
-            raw = await call_rag_lambda(query, timeout=120.0)
+            raw = await call_rag_lambda(rag_query, timeout=300.0)
         except LambdaServiceError as exc:
             logger.warning("RAG Lambda unavailable trace_id=%s err=%s", trace_id, exc)
             raise
-        answer = str(raw.get("answer") or "").strip()
-        if not answer:
-            answer = "I could not find an answer for that in the available sources."
-        return answer
+        raw_answer = str(raw.get("answer") or "").strip()
+        if not raw_answer:
+            raw_answer = "I could not find an answer for that in the available sources."
+        if character:
+            return await router_agent.build_character_answer(raw_answer, query, history, character=character)
+        return raw_answer
 
     return "Sorry, I'm not sure how to handle that yet."
 
@@ -59,6 +63,7 @@ async def handle_message(
     content: str,
     chat_id: Optional[int] = None,
     user_id: Optional[str] = None,
+    character: Optional[str] = None,
 ) -> ChatTurnResult:
     """
     Persist the incoming user message, route it through the agent, persist the
@@ -68,7 +73,7 @@ async def handle_message(
     trace_id = str(uuid.uuid4())
 
     await chat_repository.ensure_user(session, effective_user_id)
-    chat = await chat_repository.get_or_create_chat(session, effective_user_id, chat_id)
+    chat = await chat_repository.get_or_create_chat(session, effective_user_id, chat_id, character=character)
 
     user_message = await message_repository.add_message(
         session,
@@ -84,7 +89,7 @@ async def handle_message(
     history = _to_history(history_records)
 
     try:
-        reply_text = await _generate_assistant_reply(content, history, trace_id)
+        reply_text = await _generate_assistant_reply(content, history, trace_id, character=character or chat.character)
     except LambdaServiceError:
         await session.commit()
         raise
