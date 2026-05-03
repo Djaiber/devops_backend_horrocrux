@@ -45,7 +45,6 @@ class QuizResult(BaseModel):
     personaje: str
     casa: str
     descripcion: str
-    match_percentage: int
     traits: List[str]
     quote: str
     icon: str = ""
@@ -72,7 +71,6 @@ def _run_llm(answers: dict, characters: list[dict]) -> QuizResult:
             f'  "character_id": "<one of: {", ".join(character_ids)}>",\n'
             '  "personaje": "<character full name>",\n'
             '  "descripcion": "<2-3 sentence personalized description of why the user matches this character>",\n'
-            '  "match_percentage": <integer 75-98>,\n'
             '  "traits": ["<trait1>", "<trait2>", "<trait3>", "<trait4>"],\n'
             '  "quote": "<an iconic or fitting quote from the matched character>"\n'
             "}\n"
@@ -97,7 +95,6 @@ def _run_llm(answers: dict, characters: list[dict]) -> QuizResult:
         personaje=data["personaje"],
         casa=casa,
         descripcion=data["descripcion"],
-        match_percentage=data["match_percentage"],
         traits=data["traits"],
         quote=data["quote"],
         icon=icon,
@@ -122,13 +119,13 @@ async def analyze_quiz(
         return await asyncio.to_thread(_run_llm, answers_dict, characters)
     except Exception as exc:
         logger.error("Quiz LLM failed: %s", exc)
-        # fallback: pick first character
-        char = characters[0] if characters else {"label": "Harry Potter", "description": ""}
+        char = characters[0] if characters else {"label": "Harry Potter", "description": "", "id": "harry", "icon": ""}
         return QuizResult(
             personaje=char["label"],
             casa="Gryffindor",
             descripcion="Your answers reveal a brave and loyal spirit.",
-            match_percentage=80,
             traits=["Brave", "Loyal", "Determined", "Kind"],
             quote="«It is our choices that show what we truly are, far more than our abilities.»",
+            icon=char.get("icon", ""),
+            character_id=char.get("id", ""),
         )
