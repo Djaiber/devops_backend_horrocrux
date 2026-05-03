@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db.session import get_db
 from app.core.security import get_current_user
+from app.services.auth_service import AuthenticatedUser
 from app.repositories import chat_repository, message_repository
 from app.schemas.chat import (
     ChatHistoryResponse,
@@ -20,7 +21,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 async def post_message(
     payload: MessageIn,
     session: AsyncSession = Depends(get_db),
-    current_user = Depends(get_current_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
 ) -> ChatTurnResponse:
     content = payload.content.strip()
     if not content:
@@ -51,7 +52,7 @@ async def post_message(
 async def get_chat_history(
     chat_id: int = Path(..., ge=1),
     session: AsyncSession = Depends(get_db),
-    current_user = Depends(get_current_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
 ) -> ChatHistoryResponse:
     chat = await chat_repository.get_chat(session, chat_id)
     if chat is None or chat.user_id != current_user.id:

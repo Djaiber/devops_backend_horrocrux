@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from sqlalchemy import insert, select, text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -19,17 +19,15 @@ from app.routers.quiz import router as quiz_router
 from app.services.lambda_service import LambdaServiceError, call_rag_lambda
 
 
-_S3 = "https://chars-hp-epam.s3.us-east-1.amazonaws.com"
-
 DEFAULT_CHARACTERS = [
-    {"id": "dumbledore", "label": "Dumbledore", "description": "Wise and enigmatic headmaster of Hogwarts, always speaking in riddles and profound wisdom.", "icon": f"{_S3}/dumbledore.webp"},
-    {"id": "hermione", "label": "Hermione", "description": "Brilliant and studious witch, always ready with facts, rules, and logical solutions.", "icon": f"{_S3}/hermione.webp"},
-    {"id": "ron", "label": "Ron", "description": "Loyal and good-humoured best friend, brings warmth and humour to every conversation.", "icon": f"{_S3}/ron.webp"},
-    {"id": "snape", "label": "Snape", "description": "Stern and sarcastic potions master with a hidden depth, speaks with cold precision.", "icon": f"{_S3}/snape.webp"},
-    {"id": "luna", "label": "Luna", "description": "Dreamy and unconventional, sees the world in a unique way and embraces the extraordinary.", "icon": f"{_S3}/luna.webp"},
-    {"id": "harry", "label": "Harry", "description": "Brave and determined chosen one, speaks with courage and a sense of justice.", "icon": f"{_S3}/harry.webp"},
-    {"id": "hagrid", "label": "Hagrid", "description": "Warm-hearted gamekeeper with a passion for magical creatures and steadfast loyalty.", "icon": f"{_S3}/hagrid.webp"},
-    {"id": "voldemort", "label": "Voldemort", "description": "Dark and terrifying Dark Lord, speaks with cold menace and absolute certainty of power.", "icon": f"{_S3}/voldemort.webp"},
+    {"id": "dumbledore", "label": "Dumbledore", "description": "Wise and enigmatic headmaster of Hogwarts, always speaking in riddles and profound wisdom.", "icon": f"{settings.CHARACTERS_S3_BASE_URL}/dumbledore.webp"},
+    {"id": "hermione", "label": "Hermione", "description": "Brilliant and studious witch, always ready with facts, rules, and logical solutions.", "icon": f"{settings.CHARACTERS_S3_BASE_URL}/hermione.webp"},
+    {"id": "ron", "label": "Ron", "description": "Loyal and good-humoured best friend, brings warmth and humour to every conversation.", "icon": f"{settings.CHARACTERS_S3_BASE_URL}/ron.webp"},
+    {"id": "snape", "label": "Snape", "description": "Stern and sarcastic potions master with a hidden depth, speaks with cold precision.", "icon": f"{settings.CHARACTERS_S3_BASE_URL}/snape.webp"},
+    {"id": "luna", "label": "Luna", "description": "Dreamy and unconventional, sees the world in a unique way and embraces the extraordinary.", "icon": f"{settings.CHARACTERS_S3_BASE_URL}/luna.webp"},
+    {"id": "harry", "label": "Harry", "description": "Brave and determined chosen one, speaks with courage and a sense of justice.", "icon": f"{settings.CHARACTERS_S3_BASE_URL}/harry.webp"},
+    {"id": "hagrid", "label": "Hagrid", "description": "Warm-hearted gamekeeper with a passion for magical creatures and steadfast loyalty.", "icon": f"{settings.CHARACTERS_S3_BASE_URL}/hagrid.webp"},
+    {"id": "voldemort", "label": "Voldemort", "description": "Dark and terrifying Dark Lord, speaks with cold menace and absolute certainty of power.", "icon": f"{settings.CHARACTERS_S3_BASE_URL}/voldemort.webp"},
 ]
 
 
@@ -76,7 +74,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-cors_origins = settings.cors_origins_list or ["*"]
+cors_origins = settings.cors_origins_list or ["http://localhost:4200", "http://localhost:3000"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,

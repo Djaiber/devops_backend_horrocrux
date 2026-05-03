@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import re
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -100,8 +101,6 @@ class RouteDecision:
 def _normalize(text: str) -> str:
     return text.strip().lower().rstrip("!.?,")
 
-
-import re
 
 BOOK_NAMES = {
     "PS":   "The Philosopher's Stone",

@@ -1,5 +1,8 @@
+import logging
 from typing import Any, AsyncGenerator, Dict, Tuple
 from urllib.parse import parse_qs, urlsplit, urlunsplit
+
+logger = logging.getLogger(__name__)
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -77,5 +80,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         try:
             yield session
         except Exception:
+            logger.exception("DB session error, rolling back")
             await session.rollback()
             raise

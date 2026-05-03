@@ -29,7 +29,7 @@ def test_smalltalk_does_not_call_lambda(client):
     chat = SimpleNamespace(id=12, user_id=55, character='harry')
     user_msg = SimpleNamespace(id=1, chat_id=12, role='user', content='hello', trace_id='t', created_at='2026-01-01T00:00:00Z')
     ai_msg = SimpleNamespace(id=2, chat_id=12, role='assistant', content='hi', trace_id='t', created_at='2026-01-01T00:00:01Z')
-    with patch('app.repositories.chat_repository.ensure_user', new=AsyncMock()), patch(
+    with patch(
         'app.repositories.chat_repository.get_or_create_chat', new=AsyncMock(return_value=chat)
     ), patch('app.repositories.message_repository.list_recent_messages', new=AsyncMock(return_value=[])), patch(
         'app.repositories.message_repository.add_message', new=AsyncMock(side_effect=[user_msg, ai_msg])
@@ -50,7 +50,7 @@ def test_persistence_flow_uses_local_user_id_and_history_order(client):
         SimpleNamespace(id=2, chat_id=11, role='assistant', content='A', trace_id='a', created_at='2026-01-01T00:00:01Z'),
     ]
 
-    with patch('app.repositories.chat_repository.ensure_user', new=AsyncMock()) as ensure_user_mock, patch(
+    with patch(
         'app.repositories.chat_repository.get_or_create_chat', new=AsyncMock(return_value=chat)
     ) as get_or_create_chat_mock, patch('app.repositories.message_repository.list_recent_messages', new=AsyncMock(return_value=[])), patch(
         'app.repositories.message_repository.add_message', new=AsyncMock(side_effect=persisted)
@@ -66,7 +66,6 @@ def test_persistence_flow_uses_local_user_id_and_history_order(client):
     assert hist.status_code == 200
     assert lambda_mock.await_count == 1
     assert get_or_create_chat_mock.await_args.args[1] == 77
-    assert ensure_user_mock.await_args.args[1] == 77
     ids = [m['id'] for m in hist.json()['messages']]
     assert ids == sorted(ids)
 

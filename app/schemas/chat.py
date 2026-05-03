@@ -10,10 +10,6 @@ class MessageIn(BaseModel):
         default=None,
         description="Existing chat id to continue. Omit to start a new chat.",
     )
-    user_id: Optional[str] = Field(
-        default=None,
-        description="User id. Defaults to the configured DEFAULT_USER_ID when omitted.",
-    )
     character: Optional[str] = None
 
 

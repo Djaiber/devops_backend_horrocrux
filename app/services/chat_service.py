@@ -62,18 +62,16 @@ async def handle_message(
     session: AsyncSession,
     content: str,
     chat_id: Optional[int] = None,
-    user_id: Optional[str] = None,
+    user_id: Optional[int] = None,
     character: Optional[str] = None,
 ) -> ChatTurnResult:
     """
     Persist the incoming user message, route it through the agent, persist the
     assistant reply, and return both message records.
     """
-    effective_user_id = user_id or settings.DEFAULT_USER_ID
     trace_id = str(uuid.uuid4())
 
-    await chat_repository.ensure_user(session, effective_user_id)
-    chat = await chat_repository.get_or_create_chat(session, effective_user_id, chat_id, character=character)
+    chat = await chat_repository.get_or_create_chat(session, user_id, chat_id, character=character)
 
     user_message = await message_repository.add_message(
         session,

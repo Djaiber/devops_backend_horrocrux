@@ -7,7 +7,5 @@ sqlalchemy[asyncio]
 asyncpg
 greenlet
 langchain
-langchain-google-genai<2
+langchain-google-genai>=2.0
 google-genai
-pytest
-pytest-asyncio

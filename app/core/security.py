@@ -1,9 +1,11 @@
 import base64
 import json
+import logging
 import time
 from typing import Any, Dict, Optional
 
 import httpx
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -14,6 +16,7 @@ from app.core.config import settings
 from app.core.db.session import get_db
 from app.services.auth_service import AuthenticatedUser, ensure_local_user
 
+logger = logging.getLogger(__name__)
 bearer_scheme = HTTPBearer(auto_error=False)
 _jwks_cache: Dict[str, Any] = {"keys": None, "expires_at": 0.0}
 
@@ -86,7 +89,11 @@ async def get_current_user(
 
         jwks = await _fetch_jwks()
         public_key = _get_public_key(jwks, kid)
-        claims = google_jwt.decode(token, certs=public_key, verify=True)
+        pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        ).decode()
+        claims = google_jwt.decode(token, certs={kid: pem}, verify=True)
 
         _validate_claims(claims)
 
@@ -105,4 +112,5 @@ async def get_current_user(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
+        logger.error("JWT validation error: %s: %s", type(exc).__name__, exc)
         raise HTTPException(status_code=401, detail="Invalid token") from exc

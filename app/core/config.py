@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     COGNITO_REGION: str = ""
     COGNITO_USER_POOL_ID: str = ""
     COGNITO_CLIENT_ID: str = ""
+    CHARACTERS_S3_BASE_URL: str = "https://chars-hp-epam.s3.us-east-1.amazonaws.com"
 
     @property
     def cors_origins_list(self) -> List[str]:
