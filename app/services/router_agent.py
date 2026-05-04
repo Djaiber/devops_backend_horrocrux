@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 import time
 import boto3
+from botocore.exceptions import ClientError
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
