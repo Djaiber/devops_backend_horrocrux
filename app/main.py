@@ -74,7 +74,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-cors_origins = settings.cors_origins_list or ["http://localhost:4200", "http://localhost:3000"]
+cors_origins = settings.cors_origins_list or ["http://localhost:4200", "http://localhost:3000","https://www.horrocruxes-harrypotter-rag.me","https://horrocruxes-harrypotter-rag.me"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
