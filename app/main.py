@@ -83,9 +83,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(chat_router)
-app.include_router(characters_router)
-app.include_router(quiz_router)
+app.include_router(chat_router,       prefix="/api")
+app.include_router(characters_router, prefix="/api")
+app.include_router(quiz_router,       prefix="/api")
 
 
 class QueryRequest(BaseModel):
