@@ -11,6 +11,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.core.config import settings
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
