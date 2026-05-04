@@ -33,3 +33,15 @@ class ChatTurnResponse(BaseModel):
 class ChatHistoryResponse(BaseModel):
     chat_id: int
     messages: List[MessageOut]
+
+
+class ChatOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    character: str
+    created_at: datetime
+
+
+class UserChatsResponse(BaseModel):
+    chats: List[ChatOut]

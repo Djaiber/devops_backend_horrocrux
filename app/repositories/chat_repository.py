@@ -44,3 +44,9 @@ async def get_or_create_chat(session: AsyncSession, user_id: int, chat_id: Optio
         if existing is not None and existing.user_id == user_id:
             return existing
     return await create_chat(session, user_id, character=character)
+
+
+async def list_chats_for_user(session: AsyncSession, user_id: int) -> list[Chat]:
+    stmt = select(Chat).where(Chat.user_id == user_id).order_by(Chat.created_at.desc())
+    result = await session.execute(stmt)
+    return list(result.scalars().all())
