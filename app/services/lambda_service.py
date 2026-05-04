@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
 import boto3
@@ -11,39 +11,46 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-_secrets_cache: Dict[str, Any] = {"value": None, "expires_at": 0.0}
+# --- Caching for secrets (URL and API key) ---
+_secrets_cache: Dict[str, Any] = {}  # key = ARN, value = {"value": ..., "expires_at": ...}
 
 
-def _get_lambda_api_key() -> str:
-    """Fetch LAMBDA_API_KEY from AWS Secrets Manager with 5-minute cache."""
-    import time
-
+def _resolve_secret(arn: str) -> str:
+    """Fetch a secret from AWS Secrets Manager with 5‑minute cache."""
     now = time.time()
-    if _secrets_cache["value"] is not None and now < _secrets_cache["expires_at"]:
-        return _secrets_cache["value"]
-
-    secret_arn = "arn:aws:secretsmanager:us-east-1:878581768959:secret:LAMBDA_API_KEY-8x9kra"
+    cached = _secrets_cache.get(arn)
+    if cached and now < cached["expires_at"]:
+        return cached["value"]
 
     try:
         client = boto3.client("secretsmanager", region_name="us-east-1")
-        response = client.get_secret_value(SecretId=secret_arn)
+        response = client.get_secret_value(SecretId=arn)
         secret = response.get("SecretString") or ""
 
-        # Secrets Manager puede devolver JSON {"LAMBDA_API_KEY": "value"} o el valor directo
+        # The secret might be plain text or JSON
         import json
         try:
             parsed = json.loads(secret)
+            # Try common keys, otherwise fall back to the raw string
             value = parsed.get("LAMBDA_API_KEY") or parsed.get("value") or secret
         except (json.JSONDecodeError, AttributeError):
             value = secret
 
-        _secrets_cache["value"] = value
-        _secrets_cache["expires_at"] = now + 300  # cache 5 minutos
+        _secrets_cache[arn] = {
+            "value": value,
+            "expires_at": now + 300,   # 5 minutes
+        }
         return value
 
     except ClientError as e:
-        logger.error("Failed to fetch LAMBDA_API_KEY from Secrets Manager: %s", e)
-        raise LambdaServiceError(f"Could not load LAMBDA_API_KEY: {e}") from e
+        logger.error("Failed to fetch secret %s: %s", arn, e)
+        raise LambdaServiceError(f"Could not load secret {arn}: {e}") from e
+
+
+def _get_lambda_api_key() -> str:
+    """Fetch the Lambda API key from its hard‑coded ARN."""
+    secret_arn = "arn:aws:secretsmanager:us-east-1:878581768959:secret:LAMBDA_API_KEY-8x9kra"
+    return _resolve_secret(secret_arn)
 
 
 class LambdaServiceError(Exception):
@@ -62,12 +69,20 @@ def _safe_url(url: str) -> str:
 
 
 async def call_rag_lambda(query: str, timeout: float = 60.0) -> Dict[str, Any]:
-    if not settings.LAMBDA_URL:
+    # --- Resolve LAMBDA_URL (could be ARN or direct URL) ---
+    raw_url = settings.LAMBDA_URL
+    if not raw_url:
         raise LambdaServiceError("LAMBDA_URL is not configured")
+
+    # If it’s an ARN, fetch the real URL from Secrets Manager
+    if raw_url.startswith("arn:"):
+        resolved_url = _resolve_secret(raw_url)
+    else:
+        resolved_url = raw_url
 
     api_key = _get_lambda_api_key()
 
-    safe_url = _safe_url(settings.LAMBDA_URL)
+    safe_url = _safe_url(resolved_url)
     query_len = len(query)
 
     logger.info(
@@ -92,7 +107,7 @@ async def call_rag_lambda(query: str, timeout: float = 60.0) -> Dict[str, Any]:
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(
-                settings.LAMBDA_URL,
+                resolved_url,      # <-- use the resolved URL
                 headers=headers,
                 json=payload,
             )
