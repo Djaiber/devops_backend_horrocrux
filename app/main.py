@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.db.models import Character as CharacterModel
 from app.core.db.session import AsyncSessionLocal, engine, init_db
+from app.routers.auth import router as auth_router
 from app.routers.chat import router as chat_router
 from app.routers.characters import router as characters_router
 from app.routers.quiz import router as quiz_router
@@ -83,6 +84,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router,       prefix="/api")
 app.include_router(chat_router,       prefix="/api")
 app.include_router(characters_router, prefix="/api")
 app.include_router(quiz_router,       prefix="/api")
