@@ -75,6 +75,6 @@ jobs:
 
       - name: Deployment Summary
         run: |
-          echo "✅ Deployment successful"
-          echo "📦 Image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.vars.outputs.image_tag }}"
-          echo "🎯 Service: ${{ env.ECS_CLUSTER }}/${{ env.ECS_SERVICE }}"
+          echo "Deployment successful"
+          echo "Image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.vars.outputs.image_tag }}"
+          echo "Service: ${{ env.ECS_CLUSTER }}/${{ env.ECS_SERVICE }}"
